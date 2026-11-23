@@ -39,12 +39,17 @@ jobs:
             CROSS_COMPILE=aarch64-linux-gnu- \
             CROSS_COMPILE_ARM32=arm-linux-gnueabi-
 
-      - name: Pack with AnyKernel3
-        run: |
+          - name: Pack with AnyKernel3
+           run: |
           git clone --depth=1 https://github.com/abcgh232/AnyKernel3.git anykernel
-          cp out/arch/arm64/boot/Image.gz-dtb anykernel/
+          cp out/arch/arm64/boot/Image.gz* anykernel/
+          [ -f out/arch/arm64/boot/dtb ] && cp out/arch/arm64/boot/dtb anykernel/ || true
+          [ -f out/arch/arm64/boot/dtbo.img ] && cp out/arch/arm64/boot/dtbo.img anykernel/ || true
           cd anykernel
           zip -r9 ../Kernel-fog-nosig.zip * -x .git README.md *placeholder
+
+
+
 
       - name: Upload Kernel Zip
         uses: actions/upload-artifact@v4
