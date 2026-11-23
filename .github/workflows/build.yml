@@ -10,7 +10,7 @@ jobs:
       - name: Checkout Kernel Source
         uses: actions/checkout@v4
         with:
-          depth: 1
+          fetch-depth: 1
 
       - name: Install Dependencies
         run: |
@@ -19,7 +19,7 @@ jobs:
 
       - name: Download Proton Clang
         run: |
-          git clone --depth=1 https://github.com clang
+          git clone --depth=1 https://github.com/kdrag0n/proton-clang.git clang
 
       - name: Build Kernel
         run: |
