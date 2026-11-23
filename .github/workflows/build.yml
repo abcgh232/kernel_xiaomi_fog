@@ -1,0 +1,53 @@
+name: Build Kernel for Redmi 10C (fog)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout Kernel Source
+        uses: actions/checkout@v4
+        with:
+          depth: 1
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bc bison build-essential ccache curl flex git libssl-dev libncurses5-dev lz4 python3 unzip wget zip
+
+      - name: Download Proton Clang
+        run: |
+          git clone --depth=1 https://github.com clang
+
+      - name: Build Kernel
+        run: |
+          export ARCH=arm64
+          export SUBARCH=arm64
+          export PATH="$PWD/clang/bin:$PATH"
+          make O=out ARCH=arm64 vendor/fog-perf_defconfig
+          make -j$(nproc --all) O=out \
+            ARCH=arm64 \
+            CC=clang \
+            LD=ld.lld \
+            AR=llvm-ar \
+            NM=llvm-nm \
+            OBJCOPY=llvm-objcopy \
+            OBJDUMP=llvm-objdump \
+            STRIP=llvm-strip \
+            CROSS_COMPILE=aarch64-linux-gnu- \
+            CROSS_COMPILE_ARM32=arm-linux-gnueabi-
+
+      - name: Pack with AnyKernel3
+        run: |
+          git clone --depth=1 https://github.com/abcgh232/AnyKernel3.git anykernel
+          cp out/arch/arm64/boot/Image.gz-dtb anykernel/
+          cd anykernel
+          zip -r9 ../Kernel-fog-nosig.zip * -x .git README.md *placeholder
+
+      - name: Upload Kernel Zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: Kernel-fog-nosig
+          path: Kernel-fog-nosig.zip
